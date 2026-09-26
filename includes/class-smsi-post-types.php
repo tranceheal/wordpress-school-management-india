@@ -3,68 +3,112 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class SMSI_Fees {
-    public function register_post_type() {
+class SMSI_Post_Types {
+    public function register_post_types() {
+        $this->register_student_post_type();
+        $this->register_teacher_post_type();
+        $this->register_classroom_post_type();
+        $this->register_notice_post_type();
+        $this->register_exam_post_type();
+    }
+
+    private function register_student_post_type() {
         register_post_type(
-            'smsi_fee',
+            'smsi_student',
             array(
                 'labels' => array(
-                    'name' => __('Fees', 'school-management-system-india'),
-                    'singular_name' => __('Fee Record', 'school-management-system-india'),
-                    'add_new_item' => __('Add Fee Record', 'school-management-system-india'),
-                    'edit_item' => __('Edit Fee Record', 'school-management-system-india'),
+                    'name' => __('Students', 'school-management-system-india'),
+                    'singular_name' => __('Student', 'school-management-system-india'),
+                    'add_new_item' => __('Add Student', 'school-management-system-india'),
+                    'edit_item' => __('Edit Student', 'school-management-system-india'),
                 ),
                 'public' => true,
                 'has_archive' => true,
-                'menu_icon' => 'dashicons-money-alt',
-                'supports' => array('title', 'editor'),
+                'menu_icon' => 'dashicons-groups',
+                'supports' => array('title', 'editor', 'thumbnail'),
                 'show_in_rest' => true,
-                'rewrite' => array('slug' => 'fees'),
+                'rewrite' => array('slug' => 'students'),
             )
         );
     }
 
-    public function register_menu_pages() {
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Fees', 'school-management-system-india'),
-            __('Fees', 'school-management-system-india'),
-            'manage_options',
-            'edit.php?post_type=smsi_fee'
+    private function register_teacher_post_type() {
+        register_post_type(
+            'smsi_teacher',
+            array(
+                'labels' => array(
+                    'name' => __('Teachers', 'school-management-system-india'),
+                    'singular_name' => __('Teacher', 'school-management-system-india'),
+                    'add_new_item' => __('Add Teacher', 'school-management-system-india'),
+                    'edit_item' => __('Edit Teacher', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-id-alt',
+                'supports' => array('title', 'editor', 'thumbnail'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'teachers'),
+            )
         );
     }
 
-    public function render_fee_summary($atts = array()) {
-        $atts = shortcode_atts(array(
-            'limit' => 10,
-        ), $atts, 'smsi_fee_summary');
+    private function register_classroom_post_type() {
+        register_post_type(
+            'smsi_classroom',
+            array(
+                'labels' => array(
+                    'name' => __('Classrooms', 'school-management-system-india'),
+                    'singular_name' => __('Classroom', 'school-management-system-india'),
+                    'add_new_item' => __('Add Classroom', 'school-management-system-india'),
+                    'edit_item' => __('Edit Classroom', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-welcome-learn-more',
+                'supports' => array('title', 'editor'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'classrooms'),
+            )
+        );
+    }
 
-        $fees = get_posts(array(
-            'post_type' => 'smsi_fee',
-            'posts_per_page' => absint($atts['limit']),
-            'post_status' => 'publish',
-        ));
+    private function register_notice_post_type() {
+        register_post_type(
+            'smsi_notice',
+            array(
+                'labels' => array(
+                    'name' => __('Notices', 'school-management-system-india'),
+                    'singular_name' => __('Notice', 'school-management-system-india'),
+                    'add_new_item' => __('Add Notice', 'school-management-system-india'),
+                    'edit_item' => __('Edit Notice', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-megaphone',
+                'supports' => array('title', 'editor'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'notices'),
+            )
+        );
+    }
 
-        if (empty($fees)) {
-            return '<p>' . __('No fee records found.', 'school-management-system-india') . '</p>';
-        }
-
-        $output = '<div class="smsi-fee-summary"><table class="widefat"><thead><tr><th>' . __('Student', 'school-management-system-india') . '</th><th>' . __('Amount', 'school-management-system-india') . '</th><th>' . __('Status', 'school-management-system-india') . '</th></tr></thead><tbody>';
-
-        foreach ($fees as $fee) {
-            $amount = get_post_meta($fee->ID, 'smsi_fee_amount', true);
-            $status = get_post_meta($fee->ID, 'smsi_fee_status', true);
-            $student_name = get_post_meta($fee->ID, 'smsi_fee_student_name', true);
-
-            $output .= '<tr>';
-            $output .= '<td>' . esc_html($student_name ?: get_the_title($fee)) . '</td>';
-            $output .= '<td>' . esc_html($amount ?: '0') . '</td>';
-            $output .= '<td>' . esc_html($status ?: __('Pending', 'school-management-system-india')) . '</td>';
-            $output .= '</tr>';
-        }
-
-        $output .= '</tbody></table></div>';
-
-        return $output;
+    private function register_exam_post_type() {
+        register_post_type(
+            'smsi_exam',
+            array(
+                'labels' => array(
+                    'name' => __('Exams', 'school-management-system-india'),
+                    'singular_name' => __('Exam', 'school-management-system-india'),
+                    'add_new_item' => __('Add Exam Result', 'school-management-system-india'),
+                    'edit_item' => __('Edit Exam Result', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-clipboard',
+                'supports' => array('title', 'editor'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'exams'),
+            )
+        );
     }
 }

@@ -2,8 +2,8 @@
 /**
  * Plugin Name: School Management System India
  * Plugin URI: https://github.com/tranceheal/wordpress-school-management-india
- * Description: A school management plugin built for Indian schools with student, teacher, class, exam, notice, attendance, and fee management.
- * Version: 1.2.0
+ * Description: A school management plugin built for Indian schools with student, teacher, class, exam, notice, attendance, fee, and parent access management.
+ * Version: 1.3.0
  * Author: School Systems Team
  * Text Domain: school-management-system-india
  * License: GPL-3.0-or-later
@@ -16,16 +16,17 @@ if (!defined('ABSPATH')) {
 define('SMSI_PLUGIN_FILE', __FILE__);
 define('SMSI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SMSI_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('SMSI_VERSION', '1.2.0');
+define('SMSI_VERSION', '1.3.0');
 
 require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-post-types.php';
 require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-meta-boxes.php';
-require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-loader.php';
 require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-admin.php';
 require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-shortcodes.php';
 require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-attendance.php';
 require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-fees.php';
 require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-exams.php';
+require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-auth.php';
+require_once SMSI_PLUGIN_DIR . 'includes/class-smsi-loader.php';
 
 function smsi_plugin() {
     static $instance = null;

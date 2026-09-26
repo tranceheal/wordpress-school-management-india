@@ -3,91 +3,110 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class SMSI_Post_Types {
-    public function register_post_types() {
-        $this->register_student_post_type();
-        $this->register_teacher_post_type();
-        $this->register_classroom_post_type();
-        $this->register_notice_post_type();
+class SMSI_Meta_Boxes {
+    public function register_meta_boxes() {
+        $screen_post_types = array('smsi_student', 'smsi_teacher', 'smsi_notice', 'smsi_exam', 'smsi_fee');
+
+        foreach ($screen_post_types as $post_type) {
+            add_meta_box(
+                'smsi_' . $post_type . '_details',
+                __('School Details', 'school-management-system-india'),
+                array($this, 'render_meta_box'),
+                $post_type,
+                'normal',
+                'default',
+                array('post_type' => $post_type)
+            );
+        }
     }
 
-    private function register_student_post_type() {
-        register_post_type(
-            'smsi_student',
-            array(
-                'labels' => array(
-                    'name' => __('Students', 'school-management-system-india'),
-                    'singular_name' => __('Student', 'school-management-system-india'),
-                    'add_new_item' => __('Add Student', 'school-management-system-india'),
-                    'edit_item' => __('Edit Student', 'school-management-system-india'),
-                ),
-                'public' => true,
-                'has_archive' => true,
-                'menu_icon' => 'dashicons-groups',
-                'supports' => array('title', 'editor', 'thumbnail'),
-                'show_in_rest' => true,
-                'rewrite' => array('slug' => 'students'),
-            )
-        );
+    public function render_meta_box($post, $metabox) {
+        $post_type = $metabox['args']['post_type'];
+        wp_nonce_field('smsi_meta_box_nonce', 'smsi_meta_box_nonce');
+
+        if ('smsi_student' === $post_type) {
+            $fields = array(
+                'smsi_student_class' => array('label' => __('Class', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_admission_no' => array('label' => __('Admission No.', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_guardian_name' => array('label' => __('Parent / Guardian', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_contact_number' => array('label' => __('Contact Number', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_dob' => array('label' => __('Date of Birth', 'school-management-system-india'), 'type' => 'date'),
+                'smsi_student_roll_no' => array('label' => __('Roll Number', 'school-management-system-india'), 'type' => 'text'),
+            );
+        } elseif ('smsi_teacher' === $post_type) {
+            $fields = array(
+                'smsi_teacher_department' => array('label' => __('Department', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_teacher_designation' => array('label' => __('Designation', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_teacher_phone' => array('label' => __('Phone Number', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_teacher_joining_date' => array('label' => __('Joining Date', 'school-management-system-india'), 'type' => 'date'),
+            );
+        } elseif ('smsi_notice' === $post_type) {
+            $fields = array(
+                'smsi_notice_target' => array('label' => __('Audience', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_notice_expiry_date' => array('label' => __('Expiry Date', 'school-management-system-india'), 'type' => 'date'),
+            );
+        } elseif ('smsi_fee' === $post_type) {
+            $fields = array(
+                'smsi_fee_student_id' => array('label' => __('Student ID', 'school-management-system-india'), 'type' => 'number'),
+                'smsi_fee_student_name' => array('label' => __('Student Name', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_fee_amount' => array('label' => __('Amount', 'school-management-system-india'), 'type' => 'number', 'step' => '0.01'),
+                'smsi_fee_due_date' => array('label' => __('Due Date', 'school-management-system-india'), 'type' => 'date'),
+                'smsi_fee_status' => array('label' => __('Status', 'school-management-system-india'), 'type' => 'text'),
+            );
+        } else {
+            $fields = array(
+                'smsi_exam_student_id' => array('label' => __('Student', 'school-management-system-india'), 'type' => 'number'),
+                'smsi_exam_subject' => array('label' => __('Subject', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_exam_marks_obtained' => array('label' => __('Marks Obtained', 'school-management-system-india'), 'type' => 'number'),
+                'smsi_exam_total_marks' => array('label' => __('Total Marks', 'school-management-system-india'), 'type' => 'number'),
+                'smsi_exam_grade' => array('label' => __('Grade', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_exam_date' => array('label' => __('Exam Date', 'school-management-system-india'), 'type' => 'date'),
+            );
+        }
+
+        foreach ($fields as $key => $field) {
+            $value = get_post_meta($post->ID, $key, true);
+            echo '<p>';
+            echo '<label for="' . esc_attr($key) . '"><strong>' . esc_html($field['label']) . '</strong></label><br />';
+            $attributes = !empty($field['step']) ? ' step="' . esc_attr($field['step']) . '"' : '';
+            echo '<input type="' . esc_attr($field['type']) . '" id="' . esc_attr($key) . '" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" class="regular-text"' . $attributes . ' />';
+            echo '</p>';
+        }
     }
 
-    private function register_teacher_post_type() {
-        register_post_type(
-            'smsi_teacher',
-            array(
-                'labels' => array(
-                    'name' => __('Teachers', 'school-management-system-india'),
-                    'singular_name' => __('Teacher', 'school-management-system-india'),
-                    'add_new_item' => __('Add Teacher', 'school-management-system-india'),
-                    'edit_item' => __('Edit Teacher', 'school-management-system-india'),
-                ),
-                'public' => true,
-                'has_archive' => true,
-                'menu_icon' => 'dashicons-id-alt',
-                'supports' => array('title', 'editor', 'thumbnail'),
-                'show_in_rest' => true,
-                'rewrite' => array('slug' => 'teachers'),
-            )
-        );
-    }
+    public function save_meta_boxes($post_id) {
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
 
-    private function register_classroom_post_type() {
-        register_post_type(
-            'smsi_classroom',
-            array(
-                'labels' => array(
-                    'name' => __('Classrooms', 'school-management-system-india'),
-                    'singular_name' => __('Classroom', 'school-management-system-india'),
-                    'add_new_item' => __('Add Classroom', 'school-management-system-india'),
-                    'edit_item' => __('Edit Classroom', 'school-management-system-india'),
-                ),
-                'public' => true,
-                'has_archive' => true,
-                'menu_icon' => 'dashicons-welcome-learn-more',
-                'supports' => array('title', 'editor'),
-                'show_in_rest' => true,
-                'rewrite' => array('slug' => 'classrooms'),
-            )
-        );
-    }
+        if (!isset($_POST['smsi_meta_box_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['smsi_meta_box_nonce'])), 'smsi_meta_box_nonce')) {
+            return;
+        }
 
-    private function register_notice_post_type() {
-        register_post_type(
-            'smsi_notice',
-            array(
-                'labels' => array(
-                    'name' => __('Notices', 'school-management-system-india'),
-                    'singular_name' => __('Notice', 'school-management-system-india'),
-                    'add_new_item' => __('Add Notice', 'school-management-system-india'),
-                    'edit_item' => __('Edit Notice', 'school-management-system-india'),
-                ),
-                'public' => true,
-                'has_archive' => true,
-                'menu_icon' => 'dashicons-megaphone',
-                'supports' => array('title', 'editor'),
-                'show_in_rest' => true,
-                'rewrite' => array('slug' => 'notices'),
-            )
-        );
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        $post_type = get_post_type($post_id);
+        $fields = array();
+
+        if ('smsi_student' === $post_type) {
+            $fields = array('smsi_student_class', 'smsi_student_admission_no', 'smsi_student_guardian_name', 'smsi_student_contact_number', 'smsi_student_dob', 'smsi_student_roll_no');
+        } elseif ('smsi_teacher' === $post_type) {
+            $fields = array('smsi_teacher_department', 'smsi_teacher_designation', 'smsi_teacher_phone', 'smsi_teacher_joining_date');
+        } elseif ('smsi_notice' === $post_type) {
+            $fields = array('smsi_notice_target', 'smsi_notice_expiry_date');
+        } elseif ('smsi_fee' === $post_type) {
+            $fields = array('smsi_fee_student_id', 'smsi_fee_student_name', 'smsi_fee_amount', 'smsi_fee_due_date', 'smsi_fee_status');
+        } elseif ('smsi_exam' === $post_type) {
+            $fields = array('smsi_exam_student_id', 'smsi_exam_subject', 'smsi_exam_marks_obtained', 'smsi_exam_total_marks', 'smsi_exam_grade', 'smsi_exam_date');
+        }
+
+        foreach ($fields as $field) {
+            if (isset($_POST[$field])) {
+                $value = sanitize_text_field(wp_unslash($_POST[$field]));
+                update_post_meta($post_id, $field, $value);
+            }
+        }
     }
 }
