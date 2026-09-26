@@ -75,7 +75,7 @@ class SMSI_Admin {
     }
 
     public function enqueue_assets($hook) {
-        if (strpos($hook, 'smsi') !== false || strpos($hook, 'smsi_') !== false) {
+        if (strpos($hook, 'smsi') !== false || strpos($hook, 'smsi_') !== false || strpos($hook, 'school') !== false) {
             wp_enqueue_style(
                 'smsi-admin-css',
                 SMSI_PLUGIN_URL . 'assets/css/admin.css',
@@ -118,6 +118,8 @@ class SMSI_Admin {
         $teacher_count = wp_count_posts('smsi_teacher')->publish;
         $classroom_count = wp_count_posts('smsi_classroom')->publish;
         $notice_count = wp_count_posts('smsi_notice')->publish;
+        $attendance_count = wp_count_posts('smsi_attendance')->publish;
+        $fee_count = wp_count_posts('smsi_fee')->publish;
         ?>
         <div class="wrap smsi-dashboard">
             <h1><?php echo esc_html($school_name); ?> - <?php esc_html_e('School Dashboard', 'school-management-system-india'); ?></h1>
@@ -139,15 +141,23 @@ class SMSI_Admin {
                     <h3><?php esc_html_e('Notices', 'school-management-system-india'); ?></h3>
                     <p><?php echo esc_html($notice_count); ?></p>
                 </div>
+                <div class="smsi-card">
+                    <h3><?php esc_html_e('Attendance Records', 'school-management-system-india'); ?></h3>
+                    <p><?php echo esc_html($attendance_count); ?></p>
+                </div>
+                <div class="smsi-card">
+                    <h3><?php esc_html_e('Fee Records', 'school-management-system-india'); ?></h3>
+                    <p><?php echo esc_html($fee_count); ?></p>
+                </div>
             </div>
 
             <div class="smsi-panel">
                 <h2><?php esc_html_e('Suggested next modules', 'school-management-system-india'); ?></h2>
                 <ul>
-                    <li><?php esc_html_e('Attendance management', 'school-management-system-india'); ?></li>
-                    <li><?php esc_html_e('Fee collection and reminders', 'school-management-system-india'); ?></li>
+                    <li><?php esc_html_e('Daily attendance dashboard with reports', 'school-management-system-india'); ?></li>
+                    <li><?php esc_html_e('Fee collection and reminder automation', 'school-management-system-india'); ?></li>
                     <li><?php esc_html_e('Exam marks and report cards', 'school-management-system-india'); ?></li>
-                    <li><?php esc_html_e('Transport and parent communication', 'school-management-system-india'); ?></li>
+                    <li><?php esc_html_e('Parent communication and transport management', 'school-management-system-india'); ?></li>
                 </ul>
             </div>
         </div>
