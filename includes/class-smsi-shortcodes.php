@@ -3,216 +3,119 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class SMSI_Admin {
-    public function register_menu_pages() {
-        add_menu_page(
-            __('School Management', 'school-management-system-india'),
-            __('School Mgmt', 'school-management-system-india'),
-            'manage_options',
-            'smsi-dashboard',
-            array($this, 'render_dashboard'),
-            'dashicons-building',
-            26
-        );
+class SMSI_Meta_Boxes {
+    public function register_meta_boxes() {
+        $screen_post_types = array('smsi_student', 'smsi_teacher', 'smsi_notice', 'smsi_exam');
 
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Dashboard', 'school-management-system-india'),
-            __('Dashboard', 'school-management-system-india'),
-            'manage_options',
-            'smsi-dashboard',
-            array($this, 'render_dashboard')
-        );
-
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Students', 'school-management-system-india'),
-            __('Students', 'school-management-system-india'),
-            'manage_options',
-            'edit.php?post_type=smsi_student'
-        );
-
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Teachers', 'school-management-system-india'),
-            __('Teachers', 'school-management-system-india'),
-            'manage_options',
-            'edit.php?post_type=smsi_teacher'
-        );
-
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Classrooms', 'school-management-system-india'),
-            __('Classrooms', 'school-management-system-india'),
-            'manage_options',
-            'edit.php?post_type=smsi_classroom'
-        );
-
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Exams', 'school-management-system-india'),
-            __('Exams', 'school-management-system-india'),
-            'manage_options',
-            'edit.php?post_type=smsi_exam'
-        );
-
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Notices', 'school-management-system-india'),
-            __('Notices', 'school-management-system-india'),
-            'manage_options',
-            'edit.php?post_type=smsi_notice'
-        );
-
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Settings', 'school-management-system-india'),
-            __('Settings', 'school-management-system-india'),
-            'manage_options',
-            'smsi-settings',
-            array($this, 'render_settings_page')
-        );
-    }
-
-    public function enqueue_assets($hook) {
-        if (strpos($hook, 'smsi') !== false || strpos($hook, 'smsi_') !== false || strpos($hook, 'school') !== false) {
-            wp_enqueue_style(
-                'smsi-admin-css',
-                SMSI_PLUGIN_URL . 'assets/css/admin.css',
-                array(),
-                SMSI_VERSION
+        foreach ($screen_post_types as $post_type) {
+            add_meta_box(
+                'smsi_' . $post_type . '_details',
+                __('School Details', 'school-management-system-india'),
+                array($this, 'render_meta_box'),
+                $post_type,
+                'normal',
+                'default',
+                array('post_type' => $post_type)
             );
         }
     }
 
-    public function register_settings() {
-        register_setting('smsi_settings_group', 'smsi_school_settings', array(
-            'type' => 'array',
-            'default' => array(
-                'school_name' => '',
-                'school_address' => '',
-                'board_name' => 'CBSE',
-                'academic_session' => '2025-2026',
-                'contact_email' => '',
-            ),
-            'sanitize_callback' => array($this, 'sanitize_settings'),
-        ));
+    public function render_meta_box($post, $metabox) {
+        $post_type = $metabox['args']['post_type'];
+        wp_nonce_field('smsi_meta_box_nonce', 'smsi_meta_box_nonce');
+
+        if ('smsi_student' === $post_type) {
+            $fields = array(
+                'smsi_student_class' => array('label' => __('Class', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_admission_no' => array('label' => __('Admission No.', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_guardian_name' => array('label' => __('Parent / Guardian', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_contact_number' => array('label' => __('Contact Number', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_student_dob' => array('label' => __('Date of Birth', 'school-management-system-india'), 'type' => 'date'),
+            );
+        } elseif ('smsi_teacher' === $post_type) {
+            $fields = array(
+                'smsi_teacher_department' => array('label' => __('Department', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_teacher_designation' => array('label' => __('Designation', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_teacher_phone' => array('label' => __('Phone Number', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_teacher_joining_date' => array('label' => __('Joining Date', 'school-management-system-india'), 'type' => 'date'),
+            );
+        } elseif ('smsi_notice' === $post_type) {
+            $fields = array(
+                'smsi_notice_target' => array('label' => __('Audience', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_notice_expiry_date' => array('label' => __('Expiry Date', 'school-management-system-india'), 'type' => 'date'),
+            );
+        } else {
+            $fields = array(
+                'smsi_exam_student_id' => array('label' => __('Student', 'school-management-system-india'), 'type' => 'number'),
+                'smsi_exam_subject' => array('label' => __('Subject', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_exam_marks_obtained' => array('label' => __('Marks Obtained', 'school-management-system-india'), 'type' => 'number'),
+                'smsi_exam_total_marks' => array('label' => __('Total Marks', 'school-management-system-india'), 'type' => 'number'),
+                'smsi_exam_grade' => array('label' => __('Grade', 'school-management-system-india'), 'type' => 'text'),
+                'smsi_exam_date' => array('label' => __('Exam Date', 'school-management-system-india'), 'type' => 'date'),
+            );
+        }
+
+        foreach ($fields as $key => $field) {
+            $value = get_post_meta($post->ID, $key, true);
+            echo '<p>';
+            echo '<label for="' . esc_attr($key) . '"><strong>' . esc_html($field['label']) . '</strong></label><br />';
+            echo '<input type="' . esc_attr($field['type']) . '" id="' . esc_attr($key) . '" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" class="regular-text" />';
+            echo '</p>';
+        }
     }
 
-    public function sanitize_settings($input) {
-        $output = array();
-        $output['school_name'] = !empty($input['school_name']) ? sanitize_text_field($input['school_name']) : '';
-        $output['school_address'] = !empty($input['school_address']) ? sanitize_textarea_field($input['school_address']) : '';
-        $output['board_name'] = !empty($input['board_name']) ? sanitize_text_field($input['board_name']) : 'CBSE';
-        $output['academic_session'] = !empty($input['academic_session']) ? sanitize_text_field($input['academic_session']) : '2025-2026';
-        $output['contact_email'] = !empty($input['contact_email']) ? sanitize_email($input['contact_email']) : '';
-
-        return $output;
-    }
-
-    public function render_dashboard() {
-        $settings = get_option('smsi_school_settings', array());
-        $school_name = !empty($settings['school_name']) ? $settings['school_name'] : __('Your School', 'school-management-system-india');
-
-        $student_count = wp_count_posts('smsi_student')->publish;
-        $teacher_count = wp_count_posts('smsi_teacher')->publish;
-        $classroom_count = wp_count_posts('smsi_classroom')->publish;
-        $notice_count = wp_count_posts('smsi_notice')->publish;
-        $attendance_count = wp_count_posts('smsi_attendance')->publish;
-        $fee_count = wp_count_posts('smsi_fee')->publish;
-        ?>
-        <div class="wrap smsi-dashboard">
-            <h1><?php echo esc_html($school_name); ?> - <?php esc_html_e('School Dashboard', 'school-management-system-india'); ?></h1>
-
-            <div class="smsi-cards">
-                <div class="smsi-card">
-                    <h3><?php esc_html_e('Students', 'school-management-system-india'); ?></h3>
-                    <p><?php echo esc_html($student_count); ?></p>
-                </div>
-                <div class="smsi-card">
-                    <h3><?php esc_html_e('Teachers', 'school-management-system-india'); ?></h3>
-                    <p><?php echo esc_html($teacher_count); ?></p>
-                </div>
-                <div class="smsi-card">
-                    <h3><?php esc_html_e('Classrooms', 'school-management-system-india'); ?></h3>
-                    <p><?php echo esc_html($classroom_count); ?></p>
-                </div>
-                <div class="smsi-card">
-                    <h3><?php esc_html_e('Notices', 'school-management-system-india'); ?></h3>
-                    <p><?php echo esc_html($notice_count); ?></p>
-                </div>
-                <div class="smsi-card">
-                    <h3><?php esc_html_e('Attendance Records', 'school-management-system-india'); ?></h3>
-                    <p><?php echo esc_html($attendance_count); ?></p>
-                </div>
-                <div class="smsi-card">
-                    <h3><?php esc_html_e('Fee Records', 'school-management-system-india'); ?></h3>
-                    <p><?php echo esc_html($fee_count); ?></p>
-                </div>
-            </div>
-
-            <div class="smsi-panel">
-                <h2><?php esc_html_e('Suggested next modules', 'school-management-system-india'); ?></h2>
-                <ul>
-                    <li><?php esc_html_e('Daily attendance dashboard with reports', 'school-management-system-india'); ?></li>
-                    <li><?php esc_html_e('Fee collection and reminder automation', 'school-management-system-india'); ?></li>
-                    <li><?php esc_html_e('Exam marks and report cards', 'school-management-system-india'); ?></li>
-                    <li><?php esc_html_e('Parent communication and transport management', 'school-management-system-india'); ?></li>
-                </ul>
-            </div>
-        </div>
-        <?php
-    }
-
-    public function render_settings_page() {
-        if (!current_user_can('manage_options')) {
+    public function save_meta_boxes($post_id) {
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             return;
         }
 
-        $settings = get_option('smsi_school_settings', array());
-        ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('School Management Settings', 'school-management-system-india'); ?></h1>
-            <form method="post" action="options.php">
-                <?php
-                settings_fields('smsi_settings_group');
-                do_settings_sections('smsi_settings_group');
-                ?>
-                <table class="form-table">
-                    <tr>
-                        <th scope="row"><?php esc_html_e('School Name', 'school-management-system-india'); ?></th>
-                        <td>
-                            <input type="text" name="smsi_school_settings[school_name]" value="<?php echo esc_attr($settings['school_name'] ?? ''); ?>" class="regular-text" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('School Address', 'school-management-system-india'); ?></th>
-                        <td>
-                            <textarea name="smsi_school_settings[school_address]" rows="4" cols="50"><?php echo esc_textarea($settings['school_address'] ?? ''); ?></textarea>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Board / Affiliation', 'school-management-system-india'); ?></th>
-                        <td>
-                            <input type="text" name="smsi_school_settings[board_name]" value="<?php echo esc_attr($settings['board_name'] ?? 'CBSE'); ?>" class="regular-text" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Academic Session', 'school-management-system-india'); ?></th>
-                        <td>
-                            <input type="text" name="smsi_school_settings[academic_session]" value="<?php echo esc_attr($settings['academic_session'] ?? '2025-2026'); ?>" class="regular-text" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Contact Email', 'school-management-system-india'); ?></th>
-                        <td>
-                            <input type="email" name="smsi_school_settings[contact_email]" value="<?php echo esc_attr($settings['contact_email'] ?? ''); ?>" class="regular-text" />
-                        </td>
-                    </tr>
-                </table>
-                <?php submit_button(); ?>
-            </form>
-        </div>
-        <?php
+        if (!isset($_POST['smsi_meta_box_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['smsi_meta_box_nonce'])), 'smsi_meta_box_nonce')) {
+            return;
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        $post_type = get_post_type($post_id);
+        $fields = array();
+
+        if ('smsi_student' === $post_type) {
+            $fields = array(
+                'smsi_student_class',
+                'smsi_student_admission_no',
+                'smsi_student_guardian_name',
+                'smsi_student_contact_number',
+                'smsi_student_dob',
+            );
+        } elseif ('smsi_teacher' === $post_type) {
+            $fields = array(
+                'smsi_teacher_department',
+                'smsi_teacher_designation',
+                'smsi_teacher_phone',
+                'smsi_teacher_joining_date',
+            );
+        } elseif ('smsi_notice' === $post_type) {
+            $fields = array(
+                'smsi_notice_target',
+                'smsi_notice_expiry_date',
+            );
+        } elseif ('smsi_exam' === $post_type) {
+            $fields = array(
+                'smsi_exam_student_id',
+                'smsi_exam_subject',
+                'smsi_exam_marks_obtained',
+                'smsi_exam_total_marks',
+                'smsi_exam_grade',
+                'smsi_exam_date',
+            );
+        }
+
+        foreach ($fields as $field) {
+            if (isset($_POST[$field])) {
+                $value = sanitize_text_field(wp_unslash($_POST[$field]));
+                update_post_meta($post_id, $field, $value);
+            }
+        }
     }
 }

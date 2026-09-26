@@ -49,7 +49,7 @@ class SMSI_Attendance {
             return '<p>' . __('No student records available for attendance.', 'school-management-system-india') . '</p>';
         }
 
-        $output = '<div class="smsi-attendance-board"><table class="widefat"><thead><tr><th>' . __('Student', 'school-management-system-india') . '</th><th>' . __('Class', 'school-management-system-india') . '</th><th>' . __('Attendance %', 'school-management-system-india') . '</th></tr></thead><tbody>';
+        $output = '<div class="smsi-attendance-board"><table class="widefat"><thead><tr><th>' . __('Student', 'school-management-system-india') . '</th><th>' . __('Class', 'school-management-system-india') . '</th><th>' . __('Attendance', 'school-management-system-india') . '</th></tr></thead><tbody>';
 
         foreach ($students as $student) {
             $class_name = get_post_meta($student->ID, 'smsi_student_class', true);

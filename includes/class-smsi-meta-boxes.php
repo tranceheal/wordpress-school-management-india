@@ -3,89 +3,91 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class SMSI_Shortcodes {
-    public function render_student_directory($atts = array()) {
-        $atts = shortcode_atts(array(
-            'limit' => 10,
-        ), $atts, 'smsi_student_directory');
-
-        $students = get_posts(array(
-            'post_type' => 'smsi_student',
-            'post_status' => 'publish',
-            'posts_per_page' => absint($atts['limit']),
-        ));
-
-        if (empty($students)) {
-            return '<p>' . __('No student records found.', 'school-management-system-india') . '</p>';
-        }
-
-        $output = '<div class="smsi-directory">';
-        foreach ($students as $student) {
-            $class_name = get_post_meta($student->ID, 'smsi_student_class', true);
-            $output .= '<div class="smsi-directory-item">';
-            $output .= '<h3>' . esc_html(get_the_title($student)) . '</h3>';
-            $output .= '<p><strong>' . __('Class', 'school-management-system-india') . ':</strong> ' . esc_html($class_name) . '</p>';
-            $output .= '<div>' . wp_kses_post($student->post_content) . '</div>';
-            $output .= '</div>';
-        }
-        $output .= '</div>';
-
-        return $output;
+class SMSI_Post_Types {
+    public function register_post_types() {
+        $this->register_student_post_type();
+        $this->register_teacher_post_type();
+        $this->register_classroom_post_type();
+        $this->register_notice_post_type();
     }
 
-    public function render_teacher_directory($atts = array()) {
-        $atts = shortcode_atts(array(
-            'limit' => 10,
-        ), $atts, 'smsi_teacher_directory');
-
-        $teachers = get_posts(array(
-            'post_type' => 'smsi_teacher',
-            'post_status' => 'publish',
-            'posts_per_page' => absint($atts['limit']),
-        ));
-
-        if (empty($teachers)) {
-            return '<p>' . __('No teacher records found.', 'school-management-system-india') . '</p>';
-        }
-
-        $output = '<div class="smsi-directory">';
-        foreach ($teachers as $teacher) {
-            $department = get_post_meta($teacher->ID, 'smsi_teacher_department', true);
-            $output .= '<div class="smsi-directory-item">';
-            $output .= '<h3>' . esc_html(get_the_title($teacher)) . '</h3>';
-            $output .= '<p><strong>' . __('Department', 'school-management-system-india') . ':</strong> ' . esc_html($department) . '</p>';
-            $output .= '<div>' . wp_kses_post($teacher->post_content) . '</div>';
-            $output .= '</div>';
-        }
-        $output .= '</div>';
-
-        return $output;
+    private function register_student_post_type() {
+        register_post_type(
+            'smsi_student',
+            array(
+                'labels' => array(
+                    'name' => __('Students', 'school-management-system-india'),
+                    'singular_name' => __('Student', 'school-management-system-india'),
+                    'add_new_item' => __('Add Student', 'school-management-system-india'),
+                    'edit_item' => __('Edit Student', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-groups',
+                'supports' => array('title', 'editor', 'thumbnail'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'students'),
+            )
+        );
     }
 
-    public function render_noticeboard($atts = array()) {
-        $atts = shortcode_atts(array(
-            'limit' => 5,
-        ), $atts, 'smsi_school_noticeboard');
+    private function register_teacher_post_type() {
+        register_post_type(
+            'smsi_teacher',
+            array(
+                'labels' => array(
+                    'name' => __('Teachers', 'school-management-system-india'),
+                    'singular_name' => __('Teacher', 'school-management-system-india'),
+                    'add_new_item' => __('Add Teacher', 'school-management-system-india'),
+                    'edit_item' => __('Edit Teacher', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-id-alt',
+                'supports' => array('title', 'editor', 'thumbnail'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'teachers'),
+            )
+        );
+    }
 
-        $notices = get_posts(array(
-            'post_type' => 'smsi_notice',
-            'post_status' => 'publish',
-            'posts_per_page' => absint($atts['limit']),
-        ));
+    private function register_classroom_post_type() {
+        register_post_type(
+            'smsi_classroom',
+            array(
+                'labels' => array(
+                    'name' => __('Classrooms', 'school-management-system-india'),
+                    'singular_name' => __('Classroom', 'school-management-system-india'),
+                    'add_new_item' => __('Add Classroom', 'school-management-system-india'),
+                    'edit_item' => __('Edit Classroom', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-welcome-learn-more',
+                'supports' => array('title', 'editor'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'classrooms'),
+            )
+        );
+    }
 
-        if (empty($notices)) {
-            return '<p>' . __('No notices published yet.', 'school-management-system-india') . '</p>';
-        }
-
-        $output = '<div class="smsi-noticeboard">';
-        foreach ($notices as $notice) {
-            $output .= '<div class="smsi-notice">';
-            $output .= '<h3>' . esc_html(get_the_title($notice)) . '</h3>';
-            $output .= '<div>' . wp_kses_post($notice->post_content) . '</div>';
-            $output .= '</div>';
-        }
-        $output .= '</div>';
-
-        return $output;
+    private function register_notice_post_type() {
+        register_post_type(
+            'smsi_notice',
+            array(
+                'labels' => array(
+                    'name' => __('Notices', 'school-management-system-india'),
+                    'singular_name' => __('Notice', 'school-management-system-india'),
+                    'add_new_item' => __('Add Notice', 'school-management-system-india'),
+                    'edit_item' => __('Edit Notice', 'school-management-system-india'),
+                ),
+                'public' => true,
+                'has_archive' => true,
+                'menu_icon' => 'dashicons-megaphone',
+                'supports' => array('title', 'editor'),
+                'show_in_rest' => true,
+                'rewrite' => array('slug' => 'notices'),
+            )
+        );
     }
 }

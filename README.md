@@ -8,6 +8,7 @@ A WordPress plugin for managing school operations in India with modules for stud
 - Teacher profile management
 - Classroom and section tracking
 - Exam and result tracking
+- Printable report cards
 - School notices and announcements
 - Admin dashboard for quick school overview
 - Indian school settings support (board, academic session, school name, address)
@@ -17,21 +18,23 @@ A WordPress plugin for managing school operations in India with modules for stud
 1. Upload the plugin folder to `wp-content/plugins/`.
 2. Activate the plugin from the WordPress admin.
 3. Go to School Management > Settings to configure your institution details.
-4. Add students, teachers, classrooms, and notices from the admin menu.
+4. Add students, teachers, classrooms, notices, and exam results from the admin menu.
 
 ## Shortcodes
 
 - `[smsi_student_directory]` – displays the student directory
 - `[smsi_teacher_directory]` – displays the teacher directory
 - `[smsi_school_noticeboard]` – displays school notices
+- `[smsi_exam_results]` – displays exam results
+- `[smsi_report_card student_id="123"]` – shows a printable report card for a student
 
 ## Recommended next steps
 
-- Add attendance tracking with attendance reports
-- Add fee management and payment integration
-- Add exam score entry and printable report cards
-- Add front-end login and student dashboards
-- Add WhatsApp or SMS notifications for parents
+- Add front-end login and student parent dashboards
+- Add automatic fee reminders and payment notifications
+- Add board/session/class-specific report templates
+- Add CSV export for grades and fees
+- Add WhatsApp or SMS parent communication
 
 ## License
 
