@@ -81,7 +81,6 @@ class SMSI_Auth {
             return '<p>' . __('Please log in to view the parent dashboard.', 'school-management-system-india') . '</p>';
         }
 
-        $current_user = wp_get_current_user();
         $student_posts = get_posts(array(
             'post_type' => 'smsi_student',
             'post_status' => 'publish',
@@ -93,7 +92,6 @@ class SMSI_Auth {
         }
 
         $output = '<div class="smsi-parent-dashboard"><table class="widefat"><thead><tr><th>' . __('Student', 'school-management-system-india') . '</th><th>' . __('Class', 'school-management-system-india') . '</th><th>' . __('Parent', 'school-management-system-india') . '</th></tr></thead><tbody>';
-
         foreach ($student_posts as $student) {
             $class_name = get_post_meta($student->ID, 'smsi_student_class', true);
             $guardian_name = get_post_meta($student->ID, 'smsi_student_guardian_name', true);
@@ -104,7 +102,6 @@ class SMSI_Auth {
             $output .= '<td>' . esc_html($guardian_name ?: __('Not provided', 'school-management-system-india')) . '</td>';
             $output .= '</tr>';
         }
-
         $output .= '</tbody></table></div>';
 
         return $output;

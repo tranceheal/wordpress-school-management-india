@@ -25,25 +25,12 @@ class SMSI_Attendance {
     }
 
     public function register_menu_pages() {
-        add_submenu_page(
-            'smsi-dashboard',
-            __('Attendance', 'school-management-system-india'),
-            __('Attendance', 'school-management-system-india'),
-            'manage_options',
-            'edit.php?post_type=smsi_attendance'
-        );
+        add_submenu_page('smsi-dashboard', __('Attendance', 'school-management-system-india'), __('Attendance', 'school-management-system-india'), 'manage_options', 'edit.php?post_type=smsi_attendance');
     }
 
     public function render_attendance_board($atts = array()) {
-        $atts = shortcode_atts(array(
-            'limit' => 10,
-        ), $atts, 'smsi_attendance_board');
-
-        $students = get_posts(array(
-            'post_type' => 'smsi_student',
-            'posts_per_page' => absint($atts['limit']),
-            'post_status' => 'publish',
-        ));
+        $atts = shortcode_atts(array('limit' => 10), $atts, 'smsi_attendance_board');
+        $students = get_posts(array('post_type' => 'smsi_student', 'posts_per_page' => absint($atts['limit']), 'post_status' => 'publish'));
 
         if (empty($students)) {
             return '<p>' . __('No student records available for attendance.', 'school-management-system-india') . '</p>';
@@ -54,12 +41,10 @@ class SMSI_Attendance {
         foreach ($students as $student) {
             $class_name = get_post_meta($student->ID, 'smsi_student_class', true);
             $attendance = get_post_meta($student->ID, 'smsi_attendance_percentage', true);
-            $attendance = $attendance ? esc_html($attendance) : '0%';
-
             $output .= '<tr>';
             $output .= '<td>' . esc_html(get_the_title($student)) . '</td>';
             $output .= '<td>' . esc_html($class_name) . '</td>';
-            $output .= '<td>' . esc_html($attendance) . '</td>';
+            $output .= '<td>' . esc_html($attendance ? $attendance : '0%') . '</td>';
             $output .= '</tr>';
         }
 

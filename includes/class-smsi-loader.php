@@ -29,6 +29,7 @@ class SMSI_Loader {
         add_action('init', array($this->exams, 'register_post_type'));
         add_action('init', array($this->auth, 'register_roles'));
 
+        add_action('admin_post_smsi_export_csv', array($this->admin, 'export_csv'));
         add_action('add_meta_boxes', array($this->meta_boxes, 'register_meta_boxes'));
         add_action('save_post', array($this->meta_boxes, 'save_meta_boxes'));
 
@@ -36,7 +37,6 @@ class SMSI_Loader {
         add_action('admin_menu', array($this->attendance, 'register_menu_pages'));
         add_action('admin_menu', array($this->fees, 'register_menu_pages'));
         add_action('admin_menu', array($this->exams, 'register_menu_pages'));
-
         add_action('admin_init', array($this->admin, 'register_settings'));
         add_action('admin_enqueue_scripts', array($this->admin, 'enqueue_assets'));
 

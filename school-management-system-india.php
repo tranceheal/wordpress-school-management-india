@@ -2,7 +2,7 @@
 /**
  * Plugin Name: School Management System India
  * Plugin URI: https://github.com/tranceheal/wordpress-school-management-india
- * Description: A school management plugin built for Indian schools with student, teacher, class, exam, notice, attendance, fee, and parent access management.
+ * Description: A complete school management system for Indian institutions with student records, attendance, fees, reports, and parent/student access.
  * Version: 1.3.0
  * Author: School Systems Team
  * Text Domain: school-management-system-india
