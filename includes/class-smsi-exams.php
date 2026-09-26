@@ -28,6 +28,48 @@ class SMSI_Exams {
         add_submenu_page('smsi-dashboard', __('Exam Results', 'school-management-system-india'), __('Exam Results', 'school-management-system-india'), 'manage_options', 'edit.php?post_type=smsi_exam');
     }
 
+    public function get_student_result_summary($student_id) {
+        $results = get_posts(array(
+            'post_type' => 'smsi_exam',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'meta_key' => 'smsi_exam_student_id',
+            'meta_value' => (string) absint($student_id),
+        ));
+
+        $total_marks = 0;
+        $obtained_marks = 0;
+        $subjects = array();
+
+        foreach ($results as $result) {
+            $subject = get_post_meta($result->ID, 'smsi_exam_subject', true);
+            $marks = floatval(get_post_meta($result->ID, 'smsi_exam_marks_obtained', true));
+            $max_marks = floatval(get_post_meta($result->ID, 'smsi_exam_total_marks', true));
+            $grade = get_post_meta($result->ID, 'smsi_exam_grade', true);
+
+            $obtained_marks += $marks;
+            $total_marks += $max_marks;
+            $subjects[] = array(
+                'subject' => $subject ?: __('Subject', 'school-management-system-india'),
+                'marks' => $marks,
+                'total' => $max_marks,
+                'grade' => $grade ?: __('Pending', 'school-management-system-india'),
+            );
+        }
+
+        $percentage = 0;
+        if ($total_marks > 0) {
+            $percentage = ($obtained_marks / $total_marks) * 100;
+        }
+
+        return array(
+            'subjects' => $subjects,
+            'percentage' => $percentage,
+            'obtained_marks' => $obtained_marks,
+            'total_marks' => $total_marks,
+        );
+    }
+
     public function render_result_board($atts = array()) {
         $atts = shortcode_atts(array('limit' => 20), $atts, 'smsi_exam_results');
         $results = get_posts(array('post_type' => 'smsi_exam', 'post_status' => 'publish', 'posts_per_page' => absint($atts['limit'])));
@@ -125,6 +167,9 @@ class SMSI_Exams {
         $output .= $rows ?: '<tr><td colspan="4">' . __('No results recorded yet.', 'school-management-system-india') . '</td></tr>';
         $output .= '</tbody></table>';
         $output .= '<p><strong>' . __('Overall Percentage', 'school-management-system-india') . ':</strong> ' . esc_html(number_format($percentage, 2)) . '%</p>';
+        $output .= '<div style="margin-top: 18px;">';
+        $output .= '<button type="button" onclick="window.print(); return false;" class="button button-primary">' . esc_html__('Print / Save as PDF', 'school-management-system-india') . '</button>';
+        $output .= '</div>';
         $output .= '</div>';
 
         return $output;

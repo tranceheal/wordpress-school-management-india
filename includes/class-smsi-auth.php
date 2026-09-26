@@ -66,11 +66,16 @@ class SMSI_Auth {
         $guardian_name = get_post_meta($student_post->ID, 'smsi_student_guardian_name', true);
         $contact_number = get_post_meta($student_post->ID, 'smsi_student_contact_number', true);
 
+        $exams = new SMSI_Exams();
+        $summary = $exams->get_student_result_summary($student_post->ID);
+        $percentage = number_format((float) $summary['percentage'], 2);
+
         $output  = '<div class="smsi-student-portal">';
         $output .= '<h3>' . esc_html(get_the_title($student_post)) . '</h3>';
         $output .= '<p><strong>' . __('Class', 'school-management-system-india') . ':</strong> ' . esc_html($class_name ?: __('N/A', 'school-management-system-india')) . '</p>';
         $output .= '<p><strong>' . __('Parent / Guardian', 'school-management-system-india') . ':</strong> ' . esc_html($guardian_name ?: __('N/A', 'school-management-system-india')) . '</p>';
         $output .= '<p><strong>' . __('Contact Number', 'school-management-system-india') . ':</strong> ' . esc_html($contact_number ?: __('N/A', 'school-management-system-india')) . '</p>';
+        $output .= '<p><strong>' . __('Overall Percentage', 'school-management-system-india') . ':</strong> ' . esc_html($percentage) . '%</p>';
         $output .= '</div>';
 
         return $output;
@@ -91,17 +96,26 @@ class SMSI_Auth {
             return '<p>' . __('No student records available.', 'school-management-system-india') . '</p>';
         }
 
-        $output = '<div class="smsi-parent-dashboard"><table class="widefat"><thead><tr><th>' . __('Student', 'school-management-system-india') . '</th><th>' . __('Class', 'school-management-system-india') . '</th><th>' . __('Parent', 'school-management-system-india') . '</th></tr></thead><tbody>';
+        $exams = new SMSI_Exams();
+        $output = '<div class="smsi-parent-dashboard"><table class="widefat"><thead><tr><th>' . __('Student', 'school-management-system-india') . '</th><th>' . __('Class', 'school-management-system-india') . '</th><th>' . __('Parent', 'school-management-system-india') . '</th><th>' . __('Overall %', 'school-management-system-india') . '</th><th>' . __('Marks Summary', 'school-management-system-india') . '</th></tr></thead><tbody>';
+
         foreach ($student_posts as $student) {
             $class_name = get_post_meta($student->ID, 'smsi_student_class', true);
             $guardian_name = get_post_meta($student->ID, 'smsi_student_guardian_name', true);
+            $summary = $exams->get_student_result_summary($student->ID);
+            $percentage = number_format((float) $summary['percentage'], 2) . '%';
+            $subject_count = count($summary['subjects']);
+            $subject_label = $subject_count > 0 ? sprintf(_n('%s subject', '%s subjects', $subject_count, 'school-management-system-india'), number_format_i18n($subject_count)) : __('No marks yet', 'school-management-system-india');
 
             $output .= '<tr>';
             $output .= '<td>' . esc_html(get_the_title($student)) . '</td>';
             $output .= '<td>' . esc_html($class_name ?: __('N/A', 'school-management-system-india')) . '</td>';
             $output .= '<td>' . esc_html($guardian_name ?: __('Not provided', 'school-management-system-india')) . '</td>';
+            $output .= '<td>' . esc_html($percentage) . '</td>';
+            $output .= '<td>' . esc_html($subject_label) . '</td>';
             $output .= '</tr>';
         }
+
         $output .= '</tbody></table></div>';
 
         return $output;
