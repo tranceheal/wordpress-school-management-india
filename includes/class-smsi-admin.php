@@ -22,6 +22,7 @@ class SMSI_Admin {
         add_submenu_page('smsi-dashboard', __('Fees', 'school-management-system-india'), __('Fees', 'school-management-system-india'), 'manage_options', 'edit.php?post_type=smsi_fee');
         add_submenu_page('smsi-dashboard', __('Exams', 'school-management-system-india'), __('Exams', 'school-management-system-india'), 'manage_options', 'edit.php?post_type=smsi_exam');
         add_submenu_page('smsi-dashboard', __('Notices', 'school-management-system-india'), __('Notices', 'school-management-system-india'), 'manage_options', 'edit.php?post_type=smsi_notice');
+        add_submenu_page('smsi-dashboard', __('Analytics', 'school-management-system-india'), __('Analytics', 'school-management-system-india'), 'manage_options', 'smsi-analytics', array($this, 'render_analytics_page'));
         add_submenu_page('smsi-dashboard', __('Reports', 'school-management-system-india'), __('Reports', 'school-management-system-india'), 'manage_options', 'smsi-reports', array($this, 'render_reports_page'));
         add_submenu_page('smsi-dashboard', __('Settings', 'school-management-system-india'), __('Settings', 'school-management-system-india'), 'manage_options', 'smsi-settings', array($this, 'render_settings_page'));
     }
@@ -85,7 +86,6 @@ class SMSI_Admin {
         ?>
         <div class="wrap smsi-dashboard">
             <h1><?php echo esc_html($school_name); ?> - <?php esc_html_e('School Dashboard', 'school-management-system-india'); ?></h1>
-
             <div class="smsi-cards">
                 <div class="smsi-card"><h3><?php esc_html_e('Students', 'school-management-system-india'); ?></h3><p><?php echo esc_html($student_count); ?></p></div>
                 <div class="smsi-card"><h3><?php esc_html_e('Teachers', 'school-management-system-india'); ?></h3><p><?php echo esc_html($teacher_count); ?></p></div>
@@ -95,16 +95,56 @@ class SMSI_Admin {
                 <div class="smsi-card"><h3><?php esc_html_e('Fee Records', 'school-management-system-india'); ?></h3><p><?php echo esc_html($fee_count); ?></p></div>
                 <div class="smsi-card"><h3><?php esc_html_e('Exam Records', 'school-management-system-india'); ?></h3><p><?php echo esc_html($exam_count); ?></p></div>
             </div>
-
             <div class="smsi-panel">
                 <h2><?php esc_html_e('Priority modules', 'school-management-system-india'); ?></h2>
                 <ul>
-                    <li><?php esc_html_e('Parent and student login portal', 'school-management-system-india'); ?></li>
+                    <li><?php esc_html_e('Class-wise academic analytics', 'school-management-system-india'); ?></li>
+                    <li><?php esc_html_e('Bulk exam result import from CSV', 'school-management-system-india'); ?></li>
                     <li><?php esc_html_e('Fee reminders and auto-calculation', 'school-management-system-india'); ?></li>
-                    <li><?php esc_html_e('Board/session/class-specific reporting', 'school-management-system-india'); ?></li>
-                    <li><?php esc_html_e('Export and CSV reporting', 'school-management-system-india'); ?></li>
+                    <li><?php esc_html_e('Parent and student portal access', 'school-management-system-india'); ?></li>
                 </ul>
             </div>
+        </div>
+        <?php
+    }
+
+    public function render_analytics_page() {
+        $analytics = new SMSI_Analytics();
+        $students = get_posts(array(
+            'post_type' => 'smsi_student',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+        ));
+
+        $class_names = array();
+        foreach ($students as $student) {
+            $class_name = get_post_meta($student->ID, 'smsi_student_class', true);
+            if (!empty($class_name)) {
+                $class_names[$class_name] = $class_name;
+            }
+        }
+
+        $selected_class = isset($_GET['smsi_class']) ? sanitize_text_field(wp_unslash($_GET['smsi_class'])) : '';
+        if (empty($selected_class) && !empty($class_names)) {
+            $selected_class = array_values($class_names)[0];
+        }
+        ?>
+        <div class="wrap">
+            <h1><?php esc_html_e('Academic Analytics', 'school-management-system-india'); ?></h1>
+            <form method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>">
+                <input type="hidden" name="page" value="smsi-analytics" />
+                <select name="smsi_class">
+                    <?php foreach ($class_names as $class_name) : ?>
+                        <option value="<?php echo esc_attr($class_name); ?>" <?php selected($selected_class, $class_name); ?>><?php echo esc_html($class_name); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php submit_button(__('View Analytics', 'school-management-system-india')); ?>
+            </form>
+            <?php
+            if (!empty($selected_class)) {
+                echo $analytics->render_class_analytics(array('class' => $selected_class));
+            }
+            ?>
         </div>
         <?php
     }
@@ -133,6 +173,17 @@ class SMSI_Admin {
                     <?php endforeach; ?>
                 </select>
                 <?php submit_button(__('Export CSV', 'school-management-system-india')); ?>
+            </form>
+
+            <hr />
+
+            <h2><?php esc_html_e('Bulk Exam Results Import', 'school-management-system-india'); ?></h2>
+            <p><?php esc_html_e('CSV format: student_name,subject,marks_obtained,total_marks,grade,exam_date', 'school-management-system-india'); ?></p>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="smsi_import_exam_csv" />
+                <?php wp_nonce_field('smsi_import_exam_csv', 'smsi_import_nonce'); ?>
+                <input type="file" name="smsi_exam_csv" accept=".csv" required />
+                <?php submit_button(__('Import CSV', 'school-management-system-india')); ?>
             </form>
         </div>
         <?php
@@ -204,6 +255,79 @@ class SMSI_Admin {
             fputcsv($output, $row);
         }
         fclose($output);
+        exit;
+    }
+
+    public function handle_exam_csv_import() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Unauthorized', 'school-management-system-india'));
+        }
+
+        check_admin_referer('smsi_import_exam_csv', 'smsi_import_nonce');
+
+        if (empty($_FILES['smsi_exam_csv']['tmp_name'])) {
+            wp_safe_redirect(add_query_arg(array('page' => 'smsi-reports', 'smsi_import_error' => '1'), admin_url('admin.php')));
+            exit;
+        }
+
+        $file = $_FILES['smsi_exam_csv']['tmp_name'];
+        $handle = fopen($file, 'r');
+        if (!$handle) {
+            wp_safe_redirect(add_query_arg(array('page' => 'smsi-reports', 'smsi_import_error' => '1'), admin_url('admin.php')));
+            exit;
+        }
+
+        $header_row = fgetcsv($handle);
+        $expected = array('student_name', 'subject', 'marks_obtained', 'total_marks', 'grade', 'exam_date');
+
+        $count = 0;
+        while (($row = fgetcsv($handle)) !== false) {
+            if (empty(array_filter($row, 'strlen'))) {
+                continue;
+            }
+
+            $data = array_combine($header_row, $row);
+            if (!$data) {
+                continue;
+            }
+
+            $student_name = sanitize_text_field(trim((string) ($data['student_name'] ?? '')));
+            $subject = sanitize_text_field(trim((string) ($data['subject'] ?? '')));
+            $marks = floatval($data['marks_obtained'] ?? 0);
+            $total = floatval($data['total_marks'] ?? 0);
+            $grade = sanitize_text_field(trim((string) ($data['grade'] ?? '')));
+            $exam_date = sanitize_text_field(trim((string) ($data['exam_date'] ?? '')));
+
+            if (empty($student_name) || empty($subject)) {
+                continue;
+            }
+
+            $student = get_page_by_title($student_name, OBJECT, 'smsi_student');
+            if (!$student) {
+                continue;
+            }
+
+            $post_id = wp_insert_post(array(
+                'post_type' => 'smsi_exam',
+                'post_status' => 'publish',
+                'post_title' => $student_name . ' - ' . $subject . ' - ' . ($exam_date ?: current_time('Y-m-d')),
+                'post_content' => __('Bulk imported exam result', 'school-management-system-india'),
+            ));
+
+            if ($post_id && !is_wp_error($post_id)) {
+                update_post_meta($post_id, 'smsi_exam_student_id', $student->ID);
+                update_post_meta($post_id, 'smsi_exam_subject', $subject);
+                update_post_meta($post_id, 'smsi_exam_marks_obtained', $marks);
+                update_post_meta($post_id, 'smsi_exam_total_marks', $total);
+                update_post_meta($post_id, 'smsi_exam_grade', $grade);
+                update_post_meta($post_id, 'smsi_exam_date', $exam_date);
+                $count++;
+            }
+        }
+
+        fclose($handle);
+
+        wp_safe_redirect(add_query_arg(array('page' => 'smsi-reports', 'smsi_import_result' => $count), admin_url('admin.php')));
         exit;
     }
 

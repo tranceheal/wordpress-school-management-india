@@ -12,6 +12,7 @@ class SMSI_Loader {
     protected $fees;
     protected $exams;
     protected $auth;
+    protected $analytics;
 
     public function run() {
         $this->post_types = new SMSI_Post_Types();
@@ -22,6 +23,7 @@ class SMSI_Loader {
         $this->fees = new SMSI_Fees();
         $this->exams = new SMSI_Exams();
         $this->auth = new SMSI_Auth();
+        $this->analytics = new SMSI_Analytics();
 
         add_action('init', array($this->post_types, 'register_post_types'));
         add_action('init', array($this->attendance, 'register_post_type'));
@@ -30,6 +32,7 @@ class SMSI_Loader {
         add_action('init', array($this->auth, 'register_roles'));
 
         add_action('admin_post_smsi_export_csv', array($this->admin, 'export_csv'));
+        add_action('admin_post_smsi_import_exam_csv', array($this->admin, 'handle_exam_csv_import'));
         add_action('add_meta_boxes', array($this->meta_boxes, 'register_meta_boxes'));
         add_action('save_post', array($this->meta_boxes, 'save_meta_boxes'));
 
@@ -51,6 +54,7 @@ class SMSI_Loader {
         add_shortcode('smsi_student_login', array($this->auth, 'render_login_form'));
         add_shortcode('smsi_student_portal', array($this->auth, 'render_student_portal'));
         add_shortcode('smsi_parent_dashboard', array($this->auth, 'render_parent_dashboard'));
+        add_shortcode('smsi_class_analytics', array($this->analytics, 'render_class_analytics'));
     }
 
     public static function activate() {
